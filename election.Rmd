@@ -56,6 +56,48 @@ fit_1 <- stan_glm(formula = biden_win ~ 1,
 
 There are two kinds of questions we can explore. First, what are "average" or "expected" values? Implicit here is the idea that we are considering so many units that the error terms does not matter. Use `posterior_epred()` for those questions. Second, what are "predicted" values for one or a small number of units. We can't ignore that randomness of life, as represented by error terms, when dealing with these questions. Use `posterior_predict()` in this scenario.
 
+```{r}
+# posterior distribution for p
+# statistical probability that the hypothesis is true
+# What's the average that Biden won out of the 50 samples
 
+posterior_epred(fit_1, newdata =  tibble(constant = 1)) %>% 
+  as_tibble()  %>% 
+ ggplot(aes(x = `1`)) +
+    geom_histogram(aes(y = after_stat(count/sum(count))),
+                   bins = 50) + 
+    labs(title = "Posterior Probability Distribution",
+         subtitle = "Proportion of Biden winning is centered around 0.52",
+         x = "Proportion p of Biden winning in all districts in the sample",
+         y = "Probability") + 
+  
+    scale_x_continuous(labels = scales::number_format()) +
+    scale_y_continuous(labels = scales::percent_format()) +
+    theme_classic()
+
+
+```
+
+```{r}
+posterior_predict(fit_1, 
+                  newdata = tibble(constant = rep(1, 20))) %>% 
+  as_tibble() %>% 
+  mutate(total = rowSums(across(`1`:`20`))) %>% 
+  select(total) %>% 
+  ggplot(aes(total)) +
+    geom_histogram(aes(y = after_stat(count/sum(count))),
+                   bins = 50) +
+    labs(title = "Posterior Probability Distribution",
+         subtitle = "Percentage of Biden won from random 20 samples",
+         x = "Number of districts won from 20",
+         y = "Probability") + 
+    scale_x_continuous(labels = scales::number_format(accuracy = 1)) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    theme_classic()
+
+fit_1
+
+
+```
 
 
